@@ -142,7 +142,7 @@ code{font-family:var(--ui);font-size:12.5px;background:var(--track);padding:1px 
     <details>
       <summary>What this is, and is not</summary>
       <p>Righting moment here is weight times the horizontal distance from the centreline to each sailor's centre of mass, with the boat flat. The trapeze wire does not appear: wire tension and foot pressure are internal to boat plus crew, so hook height and wire angle change the load on the legs and the mast, not the righting moment.</p>
-      <p>Lever is <code>feet distance + (share × height + arm shift) × cos(angle)</code>. An arm stretched overhead moves about 5 percent of body mass along the body; the shift used is 2.3 percent of height for each arm. Both figures come from standard body-segment tables and are estimates for any one person.</p>
+      <p>Lever is <code>feet distance + (share × height + arm shift) × cos(angle)</code>. An arm stretched overhead moves about 5 percent of body mass along the body; the shift used is 1.8 percent of height for each arm, against arms hanging by the sides. Both figures come from standard body-segment tables and are estimates for any one person. With hands at the chest, as when holding a sheet, the real figure sits between None and One. On the chart, the grey lines assume a flat body with arms down.</p>
       <p>Left out: heel, bent knees, a curved back, kit carried away from the torso, and anything dynamic. The class beam of 2.9 m is the builders' figure. Use the numbers to compare, not as a measurement of the boat.</p>
     </details>
   </aside>
@@ -150,7 +150,7 @@ code{font-family:var(--ui);font-size:12.5px;background:var(--track);padding:1px 
 
 <script>
 (function () {
-  var G0 = 9.81, ARM = 0.0233, KEY = 'rm49er_v1';
+  var G0 = 9.81, ARM = 0.0176, KEY = 'rm49er_v1';
   var DEF = { h_m: 78, h_h: 180, h_a: 8, h_r: 0, c_m: 82, c_h: 186, c_a: 8, c_r: 0, b_d: 1.45, b_k: 0.56 };
   var S = {}, ref = null, C = {}, k;
   for (k in DEF) if (DEF.hasOwnProperty(k)) S[k] = DEF[k];
