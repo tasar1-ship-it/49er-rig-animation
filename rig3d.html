@@ -83,7 +83,7 @@ details table{font-family:var(--ui);font-size:12.5px;border-collapse:collapse;ma
 details td, details th{border-top:1px solid var(--hair);padding:4px 6px 4px 0;text-align:right;font-variant-numeric:tabular-nums}
 details th:first-child, details td:first-child{text-align:left}
 details th{font-weight:500;color:var(--muted)}
-.caption{position:absolute;left:50%;bottom:calc(58px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(560px,88%);background:var(--navy);color:var(--paper);font-family:var(--ui);font-size:14px;line-height:1.35;padding:10px 14px;border-radius:3px;opacity:0;transition:opacity .35s;pointer-events:none;text-align:left}
+.caption{position:absolute;left:12px;top:52px;max-width:min(620px,calc(100% - 24px));background:var(--navy);color:var(--paper);font-family:var(--ui);font-size:14px;line-height:1.35;padding:10px 14px;border-radius:3px;opacity:0;transition:opacity .35s;pointer-events:none;text-align:left}
 .caption.on{opacity:1}
 .float{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:3}
 .float button{background:var(--paper)}
@@ -108,7 +108,7 @@ details th{font-weight:500;color:var(--muted)}
   .viewbar button{flex:0 0 auto}
   .float{bottom:calc(52px + env(safe-area-inset-bottom,0px))}
   .zoombar{top:auto;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:none}
-  .caption{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .caption{left:10px;top:48px;max-width:calc(100% - 20px);font-size:13px}
 }
 @media (prefers-reduced-motion:reduce){.caption{transition:none}}
 </style>
@@ -569,7 +569,7 @@ details th{font-weight:500;color:var(--muted)}
   var L = {}, PV = {};
   function layout() {
     var strips = W >= 760, sw = strips ? Math.max(62, Math.min(86, W * 0.075)) : 0, gap = 14;
-    var top = W >= 600 ? 56 : 46, bot = W >= 760 ? 116 : 150;
+    var capH = tourOn ? $('caption').offsetHeight + 10 : 0; L.cap = (L.cap || 0) + (capH - (L.cap || 0)) * 0.2; if (Math.abs(capH - L.cap) < 0.5) L.cap = capH; else dirty = true; var top = (W >= 600 ? 56 : 46) + L.cap, bot = W >= 760 ? 88 : 112;
     L.strips = strips; L.sw = sw; L.top = top; L.bot = bot;
     var vw = W - (strips ? 2 * (sw + gap) : 0) - 16;
     L.view = { x: 8, w: vw, cx: 8 + vw / 2, cy: top + (H - top - bot) / 2 };
@@ -770,8 +770,8 @@ details th{font-weight:500;color:var(--muted)}
       drawStrip(L.s1, 0, 'Bend, fore/aft', 'aft', 'fwd', function (sol, n) { return R.chordOff(M, sol.ux, n, idx.head); });
       drawStrip(L.s2, 1, 'Sideways', 'windward', 'leeward', function (sol, n) { return -R.chordOff(M, sol.uy, n, idx.spr2); });
     }
-    var note = small ? 'Drawn \u00d7' + Math.round(E) + (opts.ghost ? ', dashed is base tune' : '') : 'Movement drawn \u00d7' + (Math.round(E * 10) / 10) + (opts.ghost ? '.  Dashed: base tune, same conditions.' : '.');
-    if (small) text(note, W - 10, 22, C.muted, 11.5, 'right'); else text(note, L.view.x + 4, H - 22, C.muted, 12);
+    var shortNote = L.view.w < 640, note = shortNote ? 'Drawn \u00d7' + Math.round(E) + (opts.ghost ? ', dashed is base tune' : '') : 'Movement drawn \u00d7' + (Math.round(E * 10) / 10) + (opts.ghost ? '.  Dashed: base tune, same conditions.' : '.');
+    text(note, L.view.x + L.view.w - 4, shortNote ? 22 : 40, C.muted, shortNote ? 11.5 : 12, 'right');
   }
   function nearest(h) { var b = 0; for (var i = 1; i < N; i++) if (Math.abs(z[i] - h) < Math.abs(z[b] - h)) b = i; return b; }
   var NICE = [10, 20, 50, 100, 200, 400, 800, 1600];
