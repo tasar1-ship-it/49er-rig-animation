@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>49er rig: what each adjuster does</title>
+<style>
+:root{
+  --paper:#FAFAF7; --panel:#F2F1EA; --ink:#1A1A1A; --muted:#5B656C; --navy:#0F3D5E;
+  --blue:#2A6FA8; --orange:#C2691C; --green:#2C7A58; --load:#9E3A34;
+  --hair:rgba(15,61,94,.20); --mast:#1A1A1A; --ghost:rgba(15,61,94,.50); --hull:#E6E8E4; --track:rgba(15,61,94,.10);
+  --ui:"Avenir Next","Helvetica Neue","Liberation Sans",Arial,sans-serif;
+  --text:Charter,"Bitstream Charter","Iowan Old Style",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B2233; --panel:#0F2B41; --ink:#ECE9E0; --muted:#9DB0BD; --navy:#B5D4EA;
+    --blue:#62AAE2; --orange:#EDA25C; --green:#66C39C; --load:#F2907F;
+    --hair:rgba(236,233,224,.18); --mast:#ECE9E0; --ghost:rgba(236,233,224,.50); --hull:#14354E; --track:rgba(236,233,224,.10);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B2233; --panel:#0F2B41; --ink:#ECE9E0; --muted:#9DB0BD; --navy:#B5D4EA;
+  --blue:#62AAE2; --orange:#EDA25C; --green:#66C39C; --load:#F2907F;
+  --hair:rgba(236,233,224,.18); --mast:#ECE9E0; --ghost:rgba(236,233,224,.50); --hull:#14354E; --track:rgba(236,233,224,.10);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--text);font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+.app{display:grid;grid-template-columns:clamp(270px,22vw,320px) minmax(0,1fr) clamp(270px,22vw,320px);height:100%;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage{grid-column:2;grid-row:1;position:relative;min-width:0;min-height:0;background:var(--paper)}
+.rail{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--panel);padding:18px 18px 28px}
+.rail.left{grid-column:1;grid-row:1;border-right:1px solid var(--hair)}
+.rail.right{grid-column:3;grid-row:1;border-left:1px solid var(--hair)}
+.app.solo{grid-template-columns:0 minmax(0,1fr) 0}
+.app.solo .rail{display:none}
+canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+h1{font-family:var(--ui);font-weight:600;font-size:19px;line-height:1.2;margin:0 0 6px;color:var(--navy);letter-spacing:-.005em}
+h2{font-family:var(--ui);font-weight:600;font-size:13.5px;margin:22px 0 10px;color:var(--navy);padding-top:14px;border-top:1px solid var(--hair)}
+p{margin:0 0 10px}
+.lede{color:var(--muted);font-size:14px}
+.ctl{margin:0 0 14px}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--ui);font-size:13px;gap:8px}
+.ctl label b{font-weight:600}
+.ctl label span.v{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ctl small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35;margin-top:2px}
+.sw{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:7px;vertical-align:middle;position:relative;top:-1px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:2px 0 0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--hair);border-radius:2px}
+input[type=range]::-moz-range-track{height:3px;background:var(--hair);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--paper);border:2px solid var(--navy);margin-top:-9px}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--paper);border:2px solid var(--navy)}
+input[type=range]:disabled{opacity:.45;cursor:default}
+input[type=range]:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px}
+button{font-family:var(--ui);font-size:13px;font-weight:500;color:var(--navy);background:transparent;border:1px solid var(--navy);border-radius:3px;padding:7px 11px;cursor:pointer;line-height:1.2}
+button:hover{background:var(--track)}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button.primary{background:var(--navy);color:var(--paper)}
+button.primary:hover{opacity:.9}
+button[aria-pressed="true"]{background:var(--navy);color:var(--paper)}
+.chk{display:flex;align-items:center;gap:8px;font-family:var(--ui);font-size:13px;margin:6px 0}
+.chk input{width:16px;height:16px;accent-color:var(--navy)}
+.bars{font-family:var(--ui);font-size:12.5px}
+.bar{display:grid;grid-template-columns:118px 1fr 50px;align-items:center;gap:8px;margin:5px 0}
+.bar .t{position:relative;height:8px;background:var(--track);border-radius:1px}
+.bar .t i{position:absolute;left:0;top:0;bottom:0;border-radius:1px;width:0}
+.bar .t u{position:absolute;left:25%;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.55}
+.bar .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar.slack .n{color:var(--load);font-weight:600}
+table.shape{width:100%;border-collapse:collapse;font-family:var(--ui);font-size:12.5px}
+table.shape th{font-weight:500;color:var(--muted);text-align:right;padding:2px 0 5px;font-size:11.5px}
+table.shape th:first-child{text-align:left}
+table.shape td{padding:4px 0;border-top:1px solid var(--hair);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+table.shape td:first-child{text-align:left;white-space:normal;padding-right:6px}
+td.up{color:var(--orange)} td.dn{color:var(--blue)}
+#insight p{font-size:14.5px;margin:0 0 9px}
+details{margin-top:14px;border-top:1px solid var(--hair);padding-top:10px}
+summary{font-family:var(--ui);font-size:13px;font-weight:600;color:var(--navy);cursor:pointer}
+details p, details li{font-size:13.5px;color:var(--muted)}
+details table{font-family:var(--ui);font-size:12.5px;border-collapse:collapse;margin:8px 0;width:100%}
+details td, details th{border-top:1px solid var(--hair);padding:4px 6px 4px 0;text-align:right;font-variant-numeric:tabular-nums}
+details th:first-child, details td:first-child{text-align:left}
+details th{font-weight:500;color:var(--muted)}
+.caption{position:absolute;left:50%;bottom:calc(58px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(560px,88%);background:var(--navy);color:var(--paper);font-family:var(--ui);font-size:14px;line-height:1.35;padding:10px 14px;border-radius:3px;opacity:0;transition:opacity .35s;pointer-events:none;text-align:left}
+.caption.on{opacity:1}
+.float{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:3}
+.float button{background:var(--paper)}
+.float button:hover{background:var(--panel)}
+.float button[aria-pressed="true"]{background:var(--navy);color:var(--paper)}
+@media (max-width:1080px){
+  .app{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .stage{position:sticky;top:0;height:56vh;z-index:2;border-bottom:1px solid var(--hair)}
+  .rail{overflow:visible;border:0 !important}
+  .app.solo .stage{height:100%}
+}
+@media (prefers-reduced-motion:reduce){.caption{transition:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <main class="stage" id="stage">
+    <canvas id="cv" aria-label="Animated drawing of the 49er mast, spreaders and wires from the side and from astern"></canvas>
+    <div class="float">
+      <button id="btnSolo" aria-pressed="false">Rig only</button>
+      <button id="btnFs">Full screen</button>
+    </div>
+    <div class="caption" id="caption" role="status"></div>
+  </main>
+
+  <aside class="rail left" aria-label="Controls">
+    <h1>49er rig: what each adjuster does</h1>
+    <p class="lede">Bare rig, no sails. Move one thing at a time. The dashed mast is the base tune in the same conditions, so the gap between the two is the effect of your change.</p>
+
+    <h2>At the dock</h2>
+    <div class="ctl">
+      <label for="s_fore"><b><span class="sw" style="background:var(--navy)"></span>Forestay length</b><span class="v" id="v_fore">base</span></label>
+      <input type="range" id="s_fore" min="-20" max="20" step="0.5" value="0">
+      <small>Sets the rake. Longer lets the mast lean aft and takes tension out of everything else.</small>
+    </div>
+    <div class="ctl">
+      <label for="s_shroud"><b><span class="sw" style="background:var(--blue)"></span>Shrouds, V1 and D2</b><span class="v" id="v_shroud">base</span></label>
+      <input type="range" id="s_shroud" min="-12" max="12" step="0.1" value="0">
+      <small>Primaries, over the bottom spreader to just below the top spreader.</small>
+    </div>
+    <div class="ctl">
+      <label for="s_cap"><b><span class="sw" style="background:var(--orange)"></span>Uppers, V2 and D3</b><span class="v" id="v_cap">base</span></label>
+      <input type="range" id="s_cap" min="-12" max="12" step="0.1" value="0">
+      <small>Caps, over the top spreader into the top section.</small>
+    </div>
+    <div class="ctl">
+      <label for="s_lower"><b><span class="sw" style="background:var(--green)"></span>Lowers, D1</b><span class="v" id="v_lower">base</span></label>
+      <input type="range" id="s_lower" min="-8" max="8" step="0.1" value="0">
+      <small>Into the bottom section, below the bottom spreader.</small>
+    </div>
+    <div class="row">
+      <button id="btnRetension" class="primary">Re-tension to base</button>
+      <button id="btnReset">Reset everything</button>
+    </div>
+    <small style="display:block;color:var(--muted);font-size:12.5px;margin-top:6px">Re-tension keeps the forestay length you chose and takes up shrouds, uppers and lowers until their tensions are back at base.</small>
+
+    <h2>Loads when sailing</h2>
+    <div class="ctl">
+      <label for="s_wind"><b>Breeze, both on the wire</b><span class="v" id="v_wind">0%</span></label>
+      <input type="range" id="s_wind" min="0" max="100" step="1" value="0">
+      <small>Side load along the luff and at the head, jib load at the hounds, trapeze pull to windward.</small>
+    </div>
+    <div class="ctl">
+      <label for="s_leech"><b>Mainsheet, leech load</b><span class="v" id="v_leech">0%</span></label>
+      <input type="range" id="s_leech" min="0" max="100" step="1" value="0">
+      <small>Pulls the masthead aft and down.</small>
+    </div>
+    <div class="ctl">
+      <label for="s_vang"><b>Vang</b><span class="v" id="v_vang">0%</span></label>
+      <input type="range" id="s_vang" min="0" max="100" step="1" value="0">
+      <small>Drives the boom into the gooseneck and adds leech load.</small>
+    </div>
+    <div class="row"><button id="btnGust">Send a gust</button></div>
+
+    <h2>Watch it run</h2>
+    <div class="row">
+      <button id="btnTour" class="primary" aria-pressed="false">Play the tour</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button data-trend="light">Light</button><button data-trend="medium">Medium</button><button data-trend="heavy">Heavy</button>
+    </div>
+    <small style="display:block;color:var(--muted);font-size:12.5px;margin-top:6px">Direction of the 2010 Southern Spars table only: more shroud as the breeze builds, slightly less upper at the top end. Not the crew's numbers.</small>
+
+    <h2>Drawing</h2>
+    <div class="ctl">
+      <label for="s_ex"><b>Movement drawn</b><span class="v" id="v_ex">×6</span></label>
+      <input type="range" id="s_ex" min="1" max="20" step="1" value="6" disabled>
+    </div>
+    <label class="chk"><input type="checkbox" id="c_auto" checked>Choose the magnification for me</label>
+    <label class="chk"><input type="checkbox" id="c_ghost" checked>Show the base tune, dashed</label>
+    <label class="chk"><input type="checkbox" id="c_labels" checked>Name the wires</label>
+    <div class="row" style="margin-top:10px"><button id="btnTheme">Dark or light</button></div>
+  </aside>
+
+  <aside class="rail right" aria-label="Readouts">
+    <h2 style="margin-top:0;border-top:0;padding-top:0">Effect on the sails</h2>
+    <div id="insight"></div>
+
+    <h2>Wire tension against base</h2>
+    <div class="bars" id="bars"></div>
+    <small style="display:block;color:var(--muted);font-size:12px;margin-top:4px">The tick is the base tune at the dock, 100%.</small>
+
+    <h2>Mast shape</h2>
+    <table class="shape" id="shape">
+      <thead><tr><th></th><th>now</th><th>against base tune</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <small style="display:block;color:var(--muted);font-size:12px;margin-top:6px">Fore and aft bend is the gap to a line from mast foot to masthead, the halyard-to-gooseneck check. Sideways values are taken from a line through foot and hounds.</small>
+
+    <details>
+      <summary>Published starting numbers, 2010</summary>
+      <table>
+        <tr><th></th><th>Light</th><th>Medium</th><th>Heavy</th></tr>
+        <tr><td>Forestay</td><td>25</td><td>28</td><td>30</td></tr>
+        <tr><td>Lowers, D1</td><td>20</td><td>20</td><td>20</td></tr>
+        <tr><td>Shrouds, V1/D2</td><td>28</td><td>32</td><td>36</td></tr>
+        <tr><td>Uppers, V2/D3</td><td>20</td><td>20</td><td>18</td></tr>
+      </table>
+      <p>Source: Southern Spars, 49er Users Manual 2010, tuning guide. Gauge readings as printed there; the manual text does not name the gauge. It predates the current sails, so treat it as history, not as a target.</p>
+      <p>The same manual says not to chase main shroud tension: get the forestay right, then set uppers and lowers so the main sits at the right depth. It also says this rig is sensitive to lowers tension.</p>
+    </details>
+    <details>
+      <summary>What this model is, and is not</summary>
+      <p>A beam with two bending planes, pinned at the foot, held by seven tension-only wires that slide over rigid spreader tips. Turning an adjuster changes a wire's length; tensions, rake and bend follow from equilibrium. Every wire can go slack.</p>
+      <p>The layout follows the Southern Spars manual: three mast sections, two identical swept spreader sets at the joints, forestay just above the top spreader, shrouds just below it, uppers bolted into the top section, lowers into the bottom section.</p>
+      <p>Estimated, not measured: all heights, chainplate positions, spreader sweep, tube and wire stiffness, and the size and split of the sailing loads. Left out: mast compression adding to bend, spreader flex, hull flex, the cunningham. So the directions and the couplings are physical, the millimetres are model values, and none of it is a setting to copy onto the boat.</p>
+    </details>
+  </aside>
+</div>
+<script>
+// 49er rig structural sketch model: beam (two bending planes) + tension-only wires.
+// x forward, y to windward, z up. Units: m, N.
+(function (root) {
+  var G = {
+    L: 8.2, rake0: 3.5 * Math.PI / 180,
+    zGoose: 0.95, zLower: 2.0, zSpr1: 2.75, zTbar: 5.35, zSpr2: 5.45, zFore: 5.55, zCap: 7.3,
+    sprLen: 0.48, sprSweep: 36 * Math.PI / 180,
+    chain: { shroud: [-0.36, 0.80, 0.03], cap: [-0.41, 0.84, 0.03], lower: [-0.33, 0.77, 0.03] },
+    bow: [1.72, 0, 0.0],
+    EIlow: 20000, EItop0: 14000, EItop1: 3500
+  };
+  function build() {
+    var keys = [0, G.zGoose, G.zLower, G.zSpr1, G.zTbar, G.zSpr2, G.zFore, G.zCap, G.L];
+    var z = [0];
+    for (var i = 1; i < keys.length; i++) {
+      var a = keys[i - 1], b = keys[i], n = Math.max(1, Math.ceil((b - a) / 0.25));
+      for (var j = 1; j <= n; j++) z.push(a + (b - a) * j / n);
+    }
+    var N = z.length, idx = {};
+    function nodeAt(h) { var best = 0; for (var i = 0; i < N; i++) if (Math.abs(z[i] - h) < Math.abs(z[best] - h)) best = i; return best; }
+    idx.goose = nodeAt(G.zGoose); idx.lower = nodeAt(G.zLower); idx.spr1 = nodeAt(G.zSpr1); idx.tbar = nodeAt(G.zTbar);
+    idx.spr2 = nodeAt(G.zSpr2); idx.fore = nodeAt(G.zFore); idx.cap = nodeAt(G.zCap); idx.head = N - 1;
+    var tr = Math.tan(G.rake0);
+    var X0 = z.map(function (h) { return -h * tr; });
+    // dof map: per node [ux, thx, uy, thy]; base ux, uy fixed
+    var map = [], nd = 0;
+    for (var i = 0; i < N; i++) for (var c = 0; c < 4; c++) { if (i === 0 && (c === 0 || c === 2)) map.push(-1); else map.push(nd++); }
+    function EI(h) { if (h <= G.zSpr2) return G.EIlow; var t = (h - G.zSpr2) / (G.L - G.zSpr2); return G.EItop0 + (G.EItop1 - G.EItop0) * t; }
+    var Kb = []; for (var i = 0; i < nd; i++) { Kb.push(new Float64Array(nd)); }
+    for (var e = 0; e < N - 1; e++) {
+      var Le = z[e + 1] - z[e], ei = EI(0.5 * (z[e] + z[e + 1])), c = ei / (Le * Le * Le);
+      var k = [[12, 6 * Le, -12, 6 * Le], [6 * Le, 4 * Le * Le, -6 * Le, 2 * Le * Le], [-12, -6 * Le, 12, -6 * Le], [6 * Le, 2 * Le * Le, -6 * Le, 4 * Le * Le]];
+      for (var p = 0; p < 2; p++) {
+        var d = [map[4 * e + 2 * p], map[4 * e + 2 * p + 1], map[4 * (e + 1) + 2 * p], map[4 * (e + 1) + 2 * p + 1]];
+        for (var a2 = 0; a2 < 4; a2++) for (var b2 = 0; b2 < 4; b2++) if (d[a2] >= 0 && d[b2] >= 0) Kb[d[a2]][d[b2]] += c * k[a2][b2];
+      }
+    }
+    var sx = -G.sprLen * Math.sin(G.sprSweep), sy = G.sprLen * Math.cos(G.sprSweep);
+    function P(node, off) { return [X0[node] + (off ? off[0] : 0), (off ? off[1] : 0), z[node]]; }
+    var wires = [];
+    function addWire(name, grp, side, pts, EA) {
+      // pts: [{fixed:[x,y,z]} | {node, off}]
+      var pos = pts.map(function (p) { return p.fixed ? p.fixed : P(p.node, p.off); });
+      var g = new Float64Array(nd), Lt = 0;
+      for (var s = 0; s < pts.length - 1; s++) {
+        var A = pos[s], B = pos[s + 1], dx = B[0] - A[0], dy = B[1] - A[1], dz = B[2] - A[2], len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        Lt += len; var ex = (dx * Math.cos(G.rake0) + dz * Math.sin(G.rake0)) / len, ey = dy / len;
+        if (!pts[s + 1].fixed) { var n1 = pts[s + 1].node; g[map[4 * n1]] += ex; g[map[4 * n1 + 2]] += ey; }
+        if (!pts[s].fixed) { var n0 = pts[s].node; if (map[4 * n0] >= 0) { g[map[4 * n0]] -= ex; g[map[4 * n0 + 2]] -= ey; } }
+      }
+      wires.push({ name: name, grp: grp, side: side, pts: pts, g: g, k: EA / Lt, L: Lt });
+    }
+    [1, -1].forEach(function (sd) {
+      var tag = sd > 0 ? 'W' : 'L';
+      addWire('shroud' + tag, 'shroud', sd, [{ fixed: [G.chain.shroud[0], sd * G.chain.shroud[1], G.chain.shroud[2]] }, { node: idx.spr1, off: [sx, sd * sy] }, { node: idx.tbar, off: [0, sd * 0.03] }], 1.0e6);
+      addWire('cap' + tag, 'cap', sd, [{ fixed: [G.chain.cap[0], sd * G.chain.cap[1], G.chain.cap[2]] }, { node: idx.spr2, off: [sx, sd * sy] }, { node: idx.cap, off: [0, sd * 0.03] }], 0.7e6);
+      addWire('lower' + tag, 'lower', sd, [{ fixed: [G.chain.lower[0], sd * G.chain.lower[1], G.chain.lower[2]] }, { node: idx.lower, off: [0, sd * 0.03] }], 0.7e6);
+    });
+    addWire('forestay', 'forestay', 0, [{ fixed: G.bow }, { node: idx.fore, off: [0.03, 0] }], 1.0e6);
+    return { G: G, z: z, N: N, idx: idx, X0: X0, map: map, nd: nd, Kb: Kb, wires: wires, spr: [sx, sy] };
+  }
+  function solveLin(A, b, n) {
+    // Gaussian elimination with partial pivoting (A: array of Float64Array rows, modified)
+    for (var c = 0; c < n; c++) {
+      var piv = c, mx = Math.abs(A[c][c]);
+      for (var r = c + 1; r < n; r++) { var v = Math.abs(A[r][c]); if (v > mx) { mx = v; piv = r; } }
+      if (piv !== c) { var t = A[c]; A[c] = A[piv]; A[piv] = t; var tb = b[c]; b[c] = b[piv]; b[piv] = tb; }
+      var d = A[c][c]; if (Math.abs(d) < 1e-9) d = 1e-9;
+      for (var r2 = c + 1; r2 < n; r2++) {
+        var f = A[r2][c] / d; if (f === 0) continue;
+        var Ar = A[r2], Ac = A[c];
+        for (var k = c; k < n; k++) Ar[k] -= f * Ac[k];
+        b[r2] -= f * b[c];
+      }
+    }
+    var x = new Float64Array(n);
+    for (var i = n - 1; i >= 0; i--) { var s = b[i]; for (var k2 = i + 1; k2 < n; k2++) s -= A[i][k2] * x[k2]; x[i] = s / A[i][i]; }
+    return x;
+  }
+  // base pre-stretch (m) per group
+  var S0 = { forestay: 0.0, shroud: 0.009, cap: 0.011, lower: 0.0004 };
+  function solve(M, inp) {
+    // inp: fore (m, + = longer), shroud, cap, lower (m take-up, + = tighter), wind (N), leech (N), vang (N), trap (0..1)
+    var nd = M.nd, z = M.z, N = M.N, map = M.map, idx = M.idx;
+    var f = new Float64Array(nd);
+    var wq = 9 * 9.81 * Math.sin(M.G.rake0) / M.G.L;
+    for (var e0 = 0; e0 < N - 1; e0++) { var Fw = wq * (z[e0 + 1] - z[e0]) / 2; if (map[4 * e0] >= 0) f[map[4 * e0]] -= Fw; f[map[4 * (e0 + 1)]] -= Fw; }
+    var Fs = inp.wind || 0;
+    if (Fs > 0) {
+      // main luff line load to leeward (-y), gooseneck to head, 55% of Fs; head 12%; jib at hounds 33%
+      var z0 = M.G.zGoose, z1 = M.G.L, q = 0.55 * Fs / (z1 - z0);
+      for (var e = 0; e < N - 1; e++) { var a = Math.max(z[e], z0), b = Math.min(z[e + 1], z1); if (b > a) { var F = q * (b - a) / 2; if (map[4 * e + 2] >= 0) f[map[4 * e + 2]] -= F; f[map[4 * (e + 1) + 2]] -= F; } }
+      f[map[4 * idx.head + 2]] -= 0.12 * Fs;
+      f[map[4 * idx.fore + 2]] -= 0.33 * Fs;
+      var Ft = (inp.trap == null ? 0.5 : inp.trap) * Fs; // horizontal trapeze pull to windward at top spreader
+      f[map[4 * idx.spr2 + 2]] += Ft;
+      f[map[4 * idx.spr2]] -= (Ft / 0.45) * 0.89 * Math.sin(M.G.rake0); // wire also pulls down along a raked mast
+    }
+    var leech = (inp.leech || 0) + 0.3 * (inp.vang || 0);
+    var cr = Math.cos(M.G.rake0), sr = Math.sin(M.G.rake0);
+    f[map[4 * idx.head]] -= (0.30 * cr + 0.95 * sr) * leech; f[map[4 * idx.head + 2]] -= 0.06 * leech * (Fs > 0 ? 1 : 0);
+    f[map[4 * idx.goose]] += 0.85 * cr * (inp.vang || 0);
+    var s = M.wires.map(function (w) {
+      var base = S0[w.grp];
+      if (w.grp === 'forestay') return base - (inp.fore || 0);
+      return base + (inp[w.grp] || 0);
+    });
+    var act = M.wires.map(function () { return true; }), u, T;
+    for (var it = 0; it < 24; it++) {
+      var A = []; for (var i = 0; i < nd; i++) A.push(Float64Array.from(M.Kb[i]));
+      var b = Float64Array.from(f);
+      M.wires.forEach(function (w, wi) {
+        if (!act[wi]) return; var g = w.g, k = w.k, nz = [];
+        for (var i = 0; i < nd; i++) if (g[i] !== 0) nz.push(i);
+        for (var a = 0; a < nz.length; a++) { b[nz[a]] -= k * s[wi] * g[nz[a]]; for (var c = 0; c < nz.length; c++) A[nz[a]][nz[c]] += k * g[nz[a]] * g[nz[c]]; }
+      });
+      // tiny regularisation so a fully slack rig does not blow up
+      for (var i2 = 0; i2 < nd; i2++) A[i2][i2] += 1e-3;
+      u = solveLin(A, b, nd);
+      var changed = false; T = [];
+      M.wires.forEach(function (w, wi) {
+        var e = s[wi]; for (var i = 0; i < nd; i++) if (w.g[i] !== 0) e += w.g[i] * u[i];
+        var t = w.k * e; T.push(act[wi] ? Math.max(0, t) : 0);
+        if (act[wi] && t < 0) { act[wi] = false; changed = true; }
+        else if (!act[wi] && t > 1e-6) { act[wi] = true; changed = true; }
+      });
+      if (!changed) break;
+    }
+    var ux = new Float64Array(N), uy = new Float64Array(N);
+    for (var n = 0; n < N; n++) { ux[n] = map[4 * n] >= 0 ? u[map[4 * n]] : 0; uy[n] = map[4 * n + 2] >= 0 ? u[map[4 * n + 2]] : 0; }
+    var ten = {}; M.wires.forEach(function (w, wi) { ten[w.name] = T[wi]; });
+    // metrics relative to chord base -> hounds (top spreader node)
+    var h = idx.spr2, zh = z[h];
+    function off(arr, n) { return arr[n] - arr[h] * z[n] / zh; }
+    return {
+      ux: ux, uy: uy, ten: ten,
+      rake: -ux[h] / zh, // rad, + = more aft
+      bendLow: off(ux, idx.spr1), // + forward
+      tipAft: -off(ux, idx.head), // + aft
+      sagMid: -off(uy, idx.spr1), // + to leeward
+      tipLee: -off(uy, idx.head), // + to leeward
+      heelHounds: -uy[h],
+      headAft: -ux[idx.head]
+    };
+  }
+  function chordOff(M, arr, n, top) { return arr[n] - arr[top] * M.z[n] / M.z[top]; }
+  function retension(M, inp, base) {
+    // find shroud, cap, lower take-up that restores base forestay, cap and lower tension at the dock
+    var v = [inp.shroud || 0, inp.cap || 0, inp.lower || 0], lim = [0.014, 0.014, 0.008];
+    function res(v) { var r = solve(M, { fore: inp.fore || 0, shroud: v[0], cap: v[1], lower: v[2] }).ten; return [r.forestay - base.forestay, r.capW - base.capW, r.lowerW - base.lowerW]; }
+    for (var it = 0; it < 12; it++) {
+      var r0 = res(v), h = 0.0004, J = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      if (Math.abs(r0[0]) + Math.abs(r0[1]) + Math.abs(r0[2]) < 3) break;
+      for (var c = 0; c < 3; c++) { var vp = v.slice(); vp[c] += h; var r1 = res(vp); for (var r = 0; r < 3; r++) J[r][c] = (r1[r] - r0[r]) / h; }
+      var A = [Float64Array.from(J[0]), Float64Array.from(J[1]), Float64Array.from(J[2])];
+      var d = solveLin(A, Float64Array.from([-r0[0], -r0[1], -r0[2]]), 3);
+      for (var c2 = 0; c2 < 3; c2++) { var st = Math.max(-0.004, Math.min(0.004, d[c2])); if (!isFinite(st)) st = 0.001; v[c2] = Math.max(-lim[c2], Math.min(lim[c2], v[c2] + st)); }
+    }
+    return { shroud: v[0], cap: v[1], lower: v[2] };
+  }
+  root.RigModel = { build: build, solve: solve, retension: retension, chordOff: chordOff, S0: S0, G: G };
+})(typeof module !== 'undefined' ? module.exports : window);
+
+</script>
+<script>
+(function () {
+  var R = window.RigModel, M = R.build(), G = M.G, idx = M.idx, z = M.z, N = M.N;
+  var cr = Math.cos(G.rake0), sr = Math.sin(G.rake0);
+  var baseRest = R.solve(M, {});
+  var LOADMAX = { wind: 800, leech: 900, vang: 1800 };
+  var KEYS = ['fore', 'shroud', 'cap', 'lower', 'wind', 'leech', 'vang'];
+  var target = { fore: 0, shroud: 0, cap: 0, lower: 0, wind: 0, leech: 0, vang: 0 };
+  var shown = { fore: 0, shroud: -9, cap: -11, lower: -2, wind: 0, leech: 0, vang: 0 };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { shown.shroud = 0; shown.cap = 0; shown.lower = 0; }
+  var introT = reduce ? 9 : 0, gustT = -1, exShown = 6, exUser = 6, stripR = [50, 50];
+  var opts = { auto: true, ghost: true, labels: true };
+  var dirty = true, lastDom = 0, cur = null, ref = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var cv = $('cv'), ctx = cv.getContext('2d'), stage = $('stage'), W = 0, H = 0, dpr = 1, C = {};
+
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    ['paper', 'panel', 'ink', 'muted', 'navy', 'blue', 'orange', 'green', 'load', 'hair', 'mast', 'ghost', 'hull', 'track'].forEach(function (k) { C[k] = cs.getPropertyValue('--' + k).trim(); });
+    dirty = true;
+  }
+  function resize() {
+    var r = stage.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    W = Math.max(200, r.width); H = Math.max(200, r.height);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); dirty = true;
+  }
+
+  /* ---------- inputs ---------- */
+  function fmt(k, v) {
+    if (k === 'wind' || k === 'leech' || k === 'vang') return Math.round(v) + '%';
+    if (Math.abs(v) < 0.05) return 'base';
+    var a = Math.abs(v).toFixed(1).replace(/\.0$/, '');
+    if (k === 'fore') return a + ' mm ' + (v > 0 ? 'longer' : 'shorter');
+    return a + ' mm ' + (v > 0 ? 'tighter' : 'eased');
+  }
+  function setTarget(k, v, fromSlider) {
+    target[k] = v; $('v_' + k).textContent = fmt(k, v);
+    if (!fromSlider) $('s_' + k).value = v;
+    dirty = true;
+  }
+  KEYS.forEach(function (k) {
+    $('s_' + k).addEventListener('input', function (e) { stopTour(); setTarget(k, parseFloat(e.target.value), true); });
+  });
+  function modelInput(s, gust) {
+    return {
+      fore: s.fore / 1000, shroud: s.shroud / 1000, cap: s.cap / 1000, lower: s.lower / 1000,
+      wind: s.wind / 100 * LOADMAX.wind + gust * 0.55 * LOADMAX.wind,
+      leech: s.leech / 100 * LOADMAX.leech + gust * 0.30 * LOADMAX.leech,
+      vang: s.vang / 100 * LOADMAX.vang
+    };
+  }
+  function gustLevel(t) {
+    function ss(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
+    if (t < 0) return 0; if (t < 0.45) return ss(t / 0.45); if (t < 1.3) return 1; if (t < 3.4) return 1 - ss((t - 1.3) / 2.1); return 0;
+  }
+  function retension() {
+    var v = R.retension(M, { fore: target.fore / 1000, shroud: target.shroud / 1000, cap: target.cap / 1000, lower: target.lower / 1000 }, baseRest.ten);
+    setTarget('shroud', Math.round(v.shroud * 10000) / 10); setTarget('cap', Math.round(v.cap * 10000) / 10); setTarget('lower', Math.round(v.lower * 10000) / 10);
+  }
+  function resetAll() { KEYS.forEach(function (k) { setTarget(k, 0); }); gustT = -1; }
+  $('btnRetension').addEventListener('click', function () { stopTour(); retension(); });
+  $('btnReset').addEventListener('click', function () { stopTour(); resetAll(); });
+  $('btnGust').addEventListener('click', function () { stopTour(); if (target.wind < 30) setTarget('wind', 45); gustT = 0; });
+  var TREND = { light: { shroud: -3, cap: 0, lower: 0.5 }, medium: { shroud: 0, cap: 0, lower: 0 }, heavy: { shroud: 3, cap: -1.5, lower: -0.5 } };
+  Array.prototype.forEach.call(document.querySelectorAll('[data-trend]'), function (b) {
+    b.addEventListener('click', function () { stopTour(); var t = TREND[b.getAttribute('data-trend')]; setTarget('fore', 0); setTarget('shroud', t.shroud); setTarget('cap', t.cap); setTarget('lower', t.lower); });
+  });
+  $('c_auto').addEventListener('change', function (e) { opts.auto = e.target.checked; $('s_ex').disabled = opts.auto; dirty = true; });
+  $('c_ghost').addEventListener('change', function (e) { opts.ghost = e.target.checked; dirty = true; });
+  $('c_labels').addEventListener('change', function (e) { opts.labels = e.target.checked; dirty = true; });
+  $('s_ex').addEventListener('input', function (e) { exUser = parseFloat(e.target.value); dirty = true; });
+  $('btnTheme').addEventListener('click', function () {
+    var root = document.documentElement, curT = root.getAttribute('data-theme');
+    if (!curT) curT = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    root.setAttribute('data-theme', curT === 'dark' ? 'light' : 'dark'); readColors();
+  });
+  $('btnSolo').addEventListener('click', function () {
+    var on = $('app').classList.toggle('solo'); this.setAttribute('aria-pressed', on ? 'true' : 'false'); this.textContent = on ? 'Show controls' : 'Rig only';
+    setTimeout(resize, 30);
+  });
+  var rootEl = document.documentElement, fsReq = rootEl.requestFullscreen || rootEl.webkitRequestFullscreen;
+  if (!fsReq) $('btnFs').style.display = 'none';
+  $('btnFs').addEventListener('click', function () {
+    try {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+      else { var p = fsReq.call(rootEl); if (p && p.catch) p.catch(function () { }); }
+    } catch (err) { }
+  });
+
+  /* ---------- tour ---------- */
+  var TOUR = [
+    { set: {}, reset: true, text: 'Base tune at the dock. Shroud tension over swept spreaders pushes the middle of the mast forward, so the rig carries a little pre-bend before any sail goes up.' },
+    { set: { shroud: 5 }, text: 'Shrouds on. Forestay tension rises with them, and the bottom spreaders push harder: a touch more bend low down.' },
+    { set: { shroud: 0, lower: 5 }, text: 'Lowers on. They pull the bottom section aft against the spreaders, so the lower mast straightens and the bend moves up the mast.' },
+    { set: { lower: -5 }, text: 'Lowers off. Nothing holds the bottom section back, so it bows forward.' },
+    { set: { lower: 0, cap: 6 }, text: 'Uppers on. The swept top spreaders turn cap tension into an aft pull on the top section: more bend up high.' },
+    { set: { cap: -8 }, text: 'Uppers right off. The top section stands nearly straight and, sideways, it is now on its own.' },
+    { set: { cap: 0, fore: 16 }, text: 'Forestay longer. The mast leans aft and the whole rig goes soft, lowers first. Rake is never a one-wire change.' },
+    { set: {}, retension: true, text: 'Re-tensioned. Same rake, and shrouds, uppers and lowers taken up until the tensions are back where they started.' },
+    { set: { fore: 0, shroud: 0, cap: 0, lower: 0, wind: 75, leech: 45 }, text: 'Breeze on, both on the wire. Windward wires load up, leeward wires go soft, and the top section falls off to leeward above the hounds.' },
+    { set: { cap: -8 }, text: 'Same breeze, uppers eased. The tip falls off further: the head opens earlier. Watch the sideways curve on the right.' },
+    { set: { cap: 0, wind: 60, leech: 30, vang: 85 }, text: 'Vang on. The boom drives into the gooseneck, the lower mast bends, the lowers take the load and shroud tension drops.' },
+    { set: { lower: 5 }, text: 'Same vang, lowers on. Less bend low down for the same vang: this is the control the manual calls sensitive.' },
+    { set: {}, reset: true, text: 'Back to base.' }
+  ];
+  var tourOn = false, tourIdx = -1, tourT = 0, TOUR_DUR = 5.2;
+  function tourStep(i) {
+    tourIdx = i; tourT = 0; var s = TOUR[i];
+    if (s.reset) resetAll();
+    for (var k in s.set) if (s.set.hasOwnProperty(k)) setTarget(k, s.set[k]);
+    if (s.retension) retension();
+    var cap = $('caption'); cap.textContent = s.text; cap.classList.add('on');
+  }
+  function stopTour() {
+    if (!tourOn) return; tourOn = false; $('caption').classList.remove('on');
+    var b = $('btnTour'); b.textContent = 'Play the tour'; b.setAttribute('aria-pressed', 'false');
+  }
+  $('btnTour').addEventListener('click', function () {
+    if (tourOn) { stopTour(); return; }
+    tourOn = true; this.textContent = 'Stop the tour'; this.setAttribute('aria-pressed', 'true'); tourStep(0);
+  });
+
+  /* ---------- geometry helpers ---------- */
+  function nodePos(sol, E, i) { var u = sol.ux[i] * E; return [M.X0[i] + u * cr, sol.uy[i] * E, z[i] + u * sr]; }
+  function wirePts(w, sol, E) {
+    return w.pts.map(function (p) { if (p.fixed) return p.fixed; var q = nodePos(sol, E, p.node); return [q[0] + p.off[0], q[1] + p.off[1], q[2]]; });
+  }
+  var L = {}; // layout
+  function layout() {
+    var strips = W >= 540, sw = strips ? Math.max(58, Math.min(92, W * 0.11)) : 0, gap = W >= 540 ? 16 : 8, top = 58, bot = W >= 600 ? 118 : 104;
+    var sideM = 3.75, aftM = 2.95;
+    var avail = W - 2 * gap - (strips ? 2 * (sw + gap) : 0) - gap;
+    var sc = Math.min((H - top - bot) / 8.75, avail / (sideM + aftM));
+    var used = sc * (sideM + aftM) + (strips ? 2 * (sw + gap) : 0) + gap, x = (W - used) / 2;
+    L.sc = sc; L.y0 = top + 8.45 * sc; L.top = top; L.bot = bot; L.strips = strips; L.sw = sw;
+    L.side = { x: x, w: sideM * sc, ox: x + 1.75 * sc }; x += sideM * sc;
+    if (strips) { L.s1 = { x: x + gap * 0.5, w: sw }; x += sw + gap; }
+    x += gap;
+    L.aft = { x: x, w: aftM * sc, ox: x + 1.5 * sc }; x += aftM * sc;
+    if (strips) { L.s2 = { x: x + gap * 0.5, w: sw }; }
+  }
+  function PS(p) { return [L.side.ox + p[0] * L.sc, L.y0 - p[2] * L.sc]; }
+  function PA(p) { return [L.aft.ox - p[1] * L.sc, L.y0 - p[2] * L.sc]; }
+  var FONT = '"Avenir Next","Helvetica Neue","Liberation Sans",Arial,sans-serif';
+  function text(s, x, y, col, size, align, weight) { ctx.font = (weight || '400') + ' ' + (size || 12) + 'px ' + FONT; ctx.fillStyle = col; ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle'; ctx.fillText(s, x, y); }
+  function arrow(x1, y1, x2, y2, col, lw) {
+    var a = Math.atan2(y2 - y1, x2 - x1), h = 7; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = lw || 1.6; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * h * 0.8, y2 - Math.sin(a) * h * 0.8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - h * Math.cos(a - 0.42), y2 - h * Math.sin(a - 0.42)); ctx.lineTo(x2 - h * Math.cos(a + 0.42), y2 - h * Math.sin(a + 0.42)); ctx.closePath(); ctx.fill();
+  }
+  var GRPCOL = { forestay: 'navy', shroud: 'blue', cap: 'orange', lower: 'green' };
+  function strokeWire(pts2, T, grp, base) {
+    var slack = T < 5; ctx.strokeStyle = C[GRPCOL[grp]]; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    var lwk = Math.max(0.55, Math.min(1, L.sc / 75)); ctx.lineWidth = slack ? 1.1 : (1.1 + 1.5 * Math.min(T / base, 2.6)) * lwk; ctx.setLineDash(slack ? [4, 4] : []);
+    ctx.globalAlpha = slack ? 0.75 : 1; ctx.beginPath(); ctx.moveTo(pts2[0][0], pts2[0][1]);
+    for (var i = 1; i < pts2.length; i++) {
+      if (!slack) ctx.lineTo(pts2[i][0], pts2[i][1]);
+      else { var a = pts2[i - 1], b = pts2[i], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.sqrt(dx * dx + dy * dy) || 1, px = -dy / len, py = dx / len, s = 0.05 * len;
+        if (py < 0 || (py === 0 && px < 0)) { px = -px; py = -py; }
+        ctx.quadraticCurveTo((a[0] + b[0]) / 2 + px * s, (a[1] + b[1]) / 2 + py * s, b[0], b[1]); }
+    }
+    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+  function mastDia(h) { return h <= G.zSpr2 ? 0.072 : 0.072 - (0.072 - 0.036) * (h - G.zSpr2) / (G.L - G.zSpr2); }
+  function drawMast(proj, sol, E, ghost) {
+    var i, p, q;
+    if (ghost) {
+      ctx.strokeStyle = C.ghost; ctx.lineWidth = 1.4; ctx.setLineDash([6, 5]); ctx.beginPath();
+      for (i = 0; i < N; i++) { p = proj(nodePos(sol, E, i)); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }
+      ctx.stroke(); ctx.setLineDash([]); return;
+    }
+    ctx.strokeStyle = C.mast; ctx.lineCap = 'round';
+    for (i = 0; i < N - 1; i++) { p = proj(nodePos(sol, E, i)); q = proj(nodePos(sol, E, i + 1)); ctx.lineWidth = Math.max(2.2, mastDia(z[i]) * L.sc * 1.15); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+    // section joints
+    ctx.strokeStyle = C.paper; ctx.lineWidth = 1.2;
+    [idx.spr1, idx.spr2].forEach(function (n) { var c = proj(nodePos(sol, E, n)); ctx.beginPath(); ctx.moveTo(c[0] - 4, c[1]); ctx.lineTo(c[0] + 4, c[1]); ctx.stroke(); });
+  }
+  function drawSpreaders(view, sol, E, ghost) {
+    [idx.spr1, idx.spr2].forEach(function (n) {
+      var c = nodePos(sol, E, n);
+      ctx.strokeStyle = ghost ? C.ghost : C.mast; ctx.lineWidth = ghost ? 1.2 : 2.4; ctx.setLineDash(ghost ? [4, 4] : []); ctx.lineCap = 'round';
+      [1, -1].forEach(function (sd) {
+        var t = [c[0] + M.spr[0], c[1] + sd * M.spr[1], c[2]], a = view === 's' ? PS(c) : PA(c), b = view === 's' ? PS(t) : PA(t);
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      });
+      ctx.setLineDash([]);
+    });
+  }
+
+  /* ---------- drawing ---------- */
+  function draw(inp, E) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); layout();
+    var sc = L.sc, y0 = L.y0, i;
+    // titles
+    var small = W < 600, labels = opts.labels && !small;
+    text('From the side', L.side.x + 4, 24, C.navy, small ? 13 : 15, 'left', '600'); text('bow to the right', L.side.x + 4, 42, C.muted, 12);
+    text('From astern', L.aft.x + 4, 24, C.navy, small ? 13 : 15, 'left', '600'); text('windward to the left', L.aft.x + 4, 42, C.muted, 12);
+
+    /* side view */
+    ctx.save(); ctx.beginPath(); ctx.rect(L.side.x, 0, L.side.w, H); ctx.clip();
+    // hull profile
+    ctx.fillStyle = C.hull; ctx.strokeStyle = C.hair; ctx.lineWidth = 1;
+    ctx.beginPath(); var hp = [[1.98, 0.02], [1.9, -0.1], [1.2, -0.27], [0, -0.33], [-3.05, -0.25], [-3.05, 0.0], [-1.2, -0.02], [0.4, -0.01]];
+    hp.forEach(function (p, k) { var q = PS([p[0], 0, p[1]]); if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // boom
+    var gp = nodePos(cur, E, idx.goose), b0 = PS(gp), b1 = PS([gp[0] - 2.5, 0, gp[2] + 0.06]);
+    ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.55; ctx.lineWidth = Math.max(2, 0.05 * sc); ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]); ctx.stroke(); ctx.globalAlpha = 1;
+    if (opts.ghost) { drawSpreaders('s', ref, E, true); drawMast(PS, ref, E, true); }
+    M.wires.forEach(function (w) { var base = baseRest.ten[w.name] || 1; strokeWire(wirePts(w, cur, E).map(PS), cur.ten[w.name], w.grp, base); });
+    drawSpreaders('s', cur, E, false); drawMast(PS, cur, E, false);
+    // loads
+    var leechN = inp.leech + 0.3 * inp.vang;
+    if (leechN > 20) { var hd = PS(nodePos(cur, E, idx.head)), ln = 22 + 60 * Math.min(1, leechN / 1400); arrow(hd[0] - 3, hd[1] + 4, hd[0] - 3 - 0.30 * ln, hd[1] + 4 + 0.95 * ln, C.load, 2); if (labels) text('leech load', Math.max(L.side.x + 4, hd[0] - 0.3 * ln - 60), hd[1] + 0.95 * ln + 20, C.load, 12, 'left'); }
+    if (inp.vang > 20) { var vl = 24 + 60 * inp.vang / LOADMAX.vang; arrow(b0[0] - 8 - vl, b0[1] + 12, b0[0] - 8, b0[1] + 12, C.load, 2); if (labels) text('boom thrust', Math.max(L.side.x + 4, b0[0] - 10 - vl), b0[1] + 28, C.load, 12, 'left'); }
+    // fade the aft edge
+    var gr = ctx.createLinearGradient(L.side.x, 0, L.side.x + 0.55 * sc, 0); gr.addColorStop(0, C.paper); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    try { gr = ctx.createLinearGradient(L.side.x, 0, L.side.x + 0.55 * sc, 0); gr.addColorStop(0, C.paper); gr.addColorStop(1, hexA(C.paper, 0)); } catch (e) { }
+    ctx.fillStyle = gr; ctx.fillRect(L.side.x, y0 - 1.4 * sc, 0.6 * sc, 2 * sc);
+    if (labels) {
+      var fw = M.wires[M.wires.length - 1], fp = wirePts(fw, cur, E).map(PS), mx = fp[0][0] + (fp[1][0] - fp[0][0]) * 0.3, my = fp[0][1] + (fp[1][1] - fp[0][1]) * 0.3;
+      text('Forestay', mx + 10, my - 2, C.navy, 12.5, 'left', '500');
+      var t1 = PS(nodePos(cur, E, idx.spr2)), t0 = PS(nodePos(cur, E, idx.spr1)), hdp = PS(nodePos(cur, E, idx.head));
+      text('top spreader, hounds', t1[0] + 12, t1[1] - 12, C.muted, 11.5); text('bottom spreader', t0[0] + 12, t0[1] - 12, C.muted, 11.5);
+      text('top section', hdp[0] + 26, hdp[1] + 6, C.muted, 11.5); text('gooseneck', b0[0] + 12, b0[1] + 2, C.muted, 11.5);
+    }
+    ctx.restore();
+
+    /* aft view */
+    ctx.save(); ctx.beginPath(); ctx.rect(L.aft.x - 4, 0, L.aft.w + 8, H); ctx.clip();
+    ctx.fillStyle = C.hull; ctx.strokeStyle = C.hair; ctx.lineWidth = 1; ctx.beginPath();
+    [[0.82, 0.02], [0.78, -0.12], [0.45, -0.3], [0, -0.35], [-0.45, -0.3], [-0.78, -0.12], [-0.82, 0.02]].forEach(function (p, k) { var q = PA([0, p[0], p[1]]); if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); });
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.6; ctx.lineWidth = Math.max(2, 0.035 * sc);
+    [1, -1].forEach(function (sd) { var a = PA([0, sd * 0.82, 0.02]), b = PA([0, sd * 1.45, 0.24]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); });
+    ctx.globalAlpha = 1;
+    if (opts.ghost) { drawSpreaders('a', ref, E, true); drawMast(PA, ref, E, true); }
+    // forestay with jib luff sag
+    var fwire = M.wires[M.wires.length - 1], fT = cur.ten.forestay, Wj = 0.33 * 1.3 * inp.wind, sag = Wj * fwire.L / (8 * Math.max(fT, 200));
+    var fa = PA(fwire.pts[0].fixed), fbp = wirePts(fwire, cur, E)[1], fb = PA(fbp), sagPx = sag * Math.min(E, 4) * sc;
+    ctx.strokeStyle = C.navy; ctx.lineWidth = fT < 5 ? 1.1 : (1.1 + 1.5 * Math.min(fT / baseRest.ten.forestay, 2.6)) * Math.max(0.55, Math.min(1, L.sc / 75)); ctx.setLineDash(fT < 5 ? [4, 4] : []);
+    ctx.beginPath(); ctx.moveTo(fa[0], fa[1]); ctx.quadraticCurveTo((fa[0] + fb[0]) / 2 + 2 * sagPx, (fa[1] + fb[1]) / 2, fb[0], fb[1]); ctx.stroke(); ctx.setLineDash([]);
+    [-1, 1].forEach(function (sd) { M.wires.forEach(function (w) { if (w.side !== sd) return; strokeWire(wirePts(w, cur, E).map(PA), cur.ten[w.name], w.grp, baseRest.ten[w.name] || 1); }); });
+    drawSpreaders('a', cur, E, false); drawMast(PA, cur, E, false);
+    if (inp.wind > 15) {
+      var frac = Math.min(1.4, inp.wind / LOADMAX.wind), al = 14 + 34 * frac;
+      for (i = 0; i < 6; i++) { var hz = G.zGoose + 0.5 + i * (G.L - G.zGoose - 0.7) / 5, mp = PA(nodePos(cur, E, nearest(hz))); arrow(mp[0] - 12 - al * (i === 5 ? 1.25 : 1), mp[1], mp[0] - 10, mp[1], C.load, 1.5); }
+      var tp = PA(nodePos(cur, E, idx.spr2)), tl = 30 + 46 * frac; arrow(tp[0] - 6, tp[1] + 6, tp[0] - 6 - 0.45 * tl * 1.6, tp[1] + 6 + 0.89 * tl, C.load, 2);
+      if (labels) { text('trapeze', tp[0] - 12 - 0.72 * tl, tp[1] + 8 + 0.89 * tl, C.load, 12, 'right'); text('breeze', PA([0, 0, G.L])[0] - 30 - al, L.top + 12, C.load, 12, 'center'); }
+      if (labels && sagPx > 3) text('jib luff sag', (fa[0] + fb[0]) / 2 + sagPx + 12, (fa[1] + fb[1]) / 2 + 6, C.navy, 11.5, 'left');
+    }
+    if (labels) {
+      var lab = [['Uppers', 'cap', 1, 4.1, -1], ['Shrouds', 'shroud', -1, 1.75, 1], ['Lowers', 'lower', -1, 0.95, 1]];
+      lab.forEach(function (d) {
+        var w = null; M.wires.forEach(function (q) { if (q.grp === d[1] && q.side === d[2]) w = q; });
+        var pts = wirePts(w, cur, E), a = pts[0], b = pts[1], t = (d[3] - a[2]) / (b[2] - a[2]), p = PA([0, a[1] + (b[1] - a[1]) * t, d[3]]);
+        var lx = d[4] < 0 ? L.aft.x + 6 : L.aft.x + L.aft.w - 6, ly = p[1] - (d[1] === 'lower' ? -14 : 10);
+        ctx.strokeStyle = C[GRPCOL[d[1]]]; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(d[4] < 0 ? lx + 44 : lx - 50, ly); ctx.stroke(); ctx.globalAlpha = 1;
+        text(d[0], lx, ly, C[GRPCOL[d[1]]], 12.5, d[4] < 0 ? 'left' : 'right', '500');
+      });
+    }
+    ctx.restore();
+
+    /* bend strips */
+    if (L.strips) {
+      var hd2 = idx.head, hn = idx.spr2;
+      drawStrip(L.s1, 0, 'Fore and aft bend', 'aft', 'fwd', function (sol, n) { return R.chordOff(M, sol.ux, n, hd2); }, 1);
+      drawStrip(L.s2, 1, 'Sideways', 'windward', 'leeward', function (sol, n) { return -R.chordOff(M, sol.uy, n, hn); }, 1);
+    }
+    // footer note
+    var note = small ? 'Drawn \u00d7' + Math.round(E) + (opts.ghost ? ', dashed is base tune' : '') : 'Movement drawn \u00d7' + (Math.round(E * 10) / 10) + (opts.ghost ? '.  Dashed: base tune, same conditions.' : '.');
+    text(note, small ? 10 : L.side.x + 4, small ? H - 70 : H - 22, C.muted, 12);
+  }
+  function nearest(h) { var b = 0; for (var i = 1; i < N; i++) if (Math.abs(z[i] - h) < Math.abs(z[b] - h)) b = i; return b; }
+  function hexA(hex, a) { var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex); if (!m) return 'rgba(0,0,0,0)'; return 'rgba(' + parseInt(m[1], 16) + ',' + parseInt(m[2], 16) + ',' + parseInt(m[3], 16) + ',' + a + ')'; }
+  var NICE = [10, 20, 50, 100, 200, 400, 800, 1600];
+  function drawStrip(S, si, title, left, right, fn) {
+    var cx = S.x + S.w / 2, i, mx = 0;
+    for (i = 0; i < N; i++) { mx = Math.max(mx, Math.abs(fn(cur, i)), Math.abs(fn(ref, i))); }
+    var want = NICE[NICE.length - 1]; for (i = 0; i < NICE.length; i++) if (NICE[i] >= mx * 1000 * 1.15) { want = NICE[i]; break; }
+    stripR[si] += (want - stripR[si]) * 0.18; if (Math.abs(want - stripR[si]) < 0.5) stripR[si] = want; else dirty = true;
+    var k = (S.w / 2 - 4) / (stripR[si] / 1000);
+    ctx.fillStyle = C.track; ctx.fillRect(S.x, L.y0 - G.L * L.sc, S.w, G.L * L.sc);
+    ctx.strokeStyle = C.hair; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, L.y0); ctx.lineTo(cx, L.y0 - G.L * L.sc); ctx.stroke();
+    [G.zSpr1, G.zSpr2].forEach(function (h) { var y = L.y0 - h * L.sc; ctx.beginPath(); ctx.moveTo(S.x, y); ctx.lineTo(S.x + S.w, y); ctx.stroke(); });
+    function path(sol) { ctx.beginPath(); for (var n = 0; n < N; n++) { var x = cx + Math.max(-S.w / 2, Math.min(S.w / 2, fn(sol, n) * k)), y = L.y0 - z[n] * L.sc; if (n) ctx.lineTo(x, y); else ctx.moveTo(x, y); } }
+    if (opts.ghost) { ctx.strokeStyle = C.ghost; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.3; path(ref); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.strokeStyle = C.navy; ctx.lineWidth = 2.2; path(cur); ctx.stroke();
+    text(title, cx, 24, C.navy, 12.5, 'center', '600'); text('\u00b1' + want + ' mm', cx, 42, C.muted, 11.5, 'center');
+    text('\u2190 ' + left, S.x, L.y0 + 14, C.muted, 10.5, 'left'); text(right + ' \u2192', S.x + S.w, L.y0 + 28, C.muted, 10.5, 'right');
+  }
+
+  /* ---------- readouts ---------- */
+  var BARS = [['forestay', 'Forestay', 'navy'], ['shroudW', 'Shrouds', 'blue'], ['shroudL', 'Shrouds, leeward', 'blue'], ['capW', 'Uppers', 'orange'], ['capL', 'Uppers, leeward', 'orange'], ['lowerW', 'Lowers', 'green'], ['lowerL', 'Lowers, leeward', 'green']];
+  (function () {
+    var h = ''; BARS.forEach(function (b) { h += '<div class="bar" id="bar_' + b[0] + '"><span class="l">' + b[1] + '</span><span class="t"><i style="background:var(--' + b[2] + ')"></i><u></u></span><span class="n"></span></div>'; });
+    $('bars').innerHTML = h;
+  })();
+  function metrics(sol, inp) {
+    var Wj = 0.33 * 1.3 * inp.wind, fl = M.wires[M.wires.length - 1].L;
+    return {
+      head: sol.headAft * 1000, rake: sol.rake * 180 / Math.PI,
+      low: R.chordOff(M, sol.ux, idx.spr1, idx.head) * 1000, top: R.chordOff(M, sol.ux, idx.spr2, idx.head) * 1000,
+      tip: sol.tipLee * 1000, mid: sol.sagMid * 1000, sag: Wj > 1 ? Wj * fl / (8 * Math.max(sol.ten.forestay, 200)) * 1000 : 0, fT: sol.ten.forestay
+    };
+  }
+  function sgn(v, unit, d) { var r = Math.round(v * (d ? 10 : 1)) / (d ? 10 : 1); if (Math.abs(r) < (d ? 0.05 : 0.5)) return '0' + unit; return (r > 0 ? '+' : '\u2212') + Math.abs(r) + unit; }
+  function side(v) { var r = Math.round(v); return r < 0 ? (-r) + ' mm to windward' : r + ' mm'; }
+  function updateDom(inp) {
+    var sym = inp.wind < 1;
+    BARS.forEach(function (b) {
+      var el = $('bar_' + b[0]), lee = /L$/.test(b[0]); if (lee) el.style.display = sym ? 'none' : '';
+      if (!lee && b[0] !== 'forestay') el.querySelector('.l').textContent = b[1] + (sym ? '' : ', windward');
+      var pct = cur.ten[b[0]] / baseRest.ten[b[0]] * 100; el.querySelector('i').style.width = Math.min(100, pct / 4) + '%';
+      el.querySelector('.n').textContent = cur.ten[b[0]] < 5 ? 'slack' : Math.round(pct) + '%'; el.className = 'bar' + (cur.ten[b[0]] < 5 ? ' slack' : '');
+    });
+    var m = metrics(cur, inp), r = metrics(ref, inp), b0 = metrics(baseRest, { wind: 0 });
+    function row(label, now, delta) { var cls = /^\+/.test(delta) ? 'up' : (/^\u2212/.test(delta) ? 'dn' : ''); return '<tr><td>' + label + '</td><td>' + now + '</td><td class="' + cls + '">' + delta + '</td></tr>'; }
+    var h = row('Masthead aft of its dock position', sgn(m.head - b0.head, ' mm'), sgn(m.head - r.head, ' mm'));
+    h += row('Bend at bottom spreader', Math.round(m.low) + ' mm', sgn(m.low - r.low, ' mm'));
+    h += row('Bend at top spreader', Math.round(m.top) + ' mm', sgn(m.top - r.top, ' mm'));
+    h += row('Tip off to leeward', side(m.tip), sgn(m.tip - r.tip, ' mm'));
+    h += row('Mid-mast to leeward', side(m.mid), sgn(m.mid - r.mid, ' mm'));
+    if (inp.wind > 1) h += row('Jib luff sag', Math.round(m.sag) + ' mm', sgn(m.sag - r.sag, ' mm'));
+    $('shape').querySelector('tbody').innerHTML = h;
+    $('insight').innerHTML = insight(m, r, inp);
+  }
+  function insight(m, r, inp) {
+    var out = [], adj = Math.abs(shown.fore) + Math.abs(shown.shroud) + Math.abs(shown.cap) + Math.abs(shown.lower), loads = inp.wind + inp.leech + inp.vang;
+    if (introT < 2.2) return '<p>Tensioning the rig up to the base tune.</p>';
+    if (cur.ten.forestay < 60 && cur.ten.shroudW < 60) return '<p>The rig is slack. The mast is leaning on the forestay under its own weight and no wire is doing any work. Take up the shrouds, or press re-tension.</p>';
+    if (adj < 0.3) {
+      if (loads < 20) return '<p>This is the base tune at the dock. Move one adjuster and watch the gap open between the solid mast and the dashed one.</p>';
+      var s = '<p>Base tune under load. ';
+      if (inp.wind > 20) s += 'Windward wires carry the rig; the leeward ' + (cur.ten.capL < 5 ? 'upper is slack' : 'wires soften') + ' and the top section falls off above the hounds. ';
+      if (inp.leech + inp.vang > 20) s += 'Leech load pulls the masthead aft, which is what loads the forestay on a rig with no backstay: forestay tension is now ' + Math.round(cur.ten.forestay / baseRest.ten.forestay * 100) + '% of the dock value' + (inp.wind > 20 ? ', and that is what takes the sag out of the jib luff. ' : '. ');
+      if (inp.vang > 20) s += 'Boom thrust from the vang bends the bottom section and the lowers take that load.';
+      return s + '</p><p>Now change an adjuster to see what it does in these conditions.</p>';
+    }
+    var c = [];
+    var dLow = m.low - r.low, dTop = m.top - r.top, dTip = m.tip - r.tip, dMid = m.mid - r.mid, dHead = m.head - r.head, fr = r.fT > 20 ? m.fT / r.fT : 1;
+    if (Math.abs(dHead) > 25 && Math.abs(shown.fore) > 1) c.push([Math.abs(dHead) / 25, dHead > 0 ? 'More rake: the masthead sits ' + Math.round(dHead) + ' mm further aft. The sail plan moves aft and lower and the top of the slot opens, which suits breeze; helm balance shifts with it.' : 'Less rake: the masthead is ' + Math.round(-dHead) + ' mm further forward. The sail plan stands taller and more upright, which suits light air and power; the top of the slot closes.']);
+    if (Math.abs(dLow) > 4) c.push([Math.abs(dLow) / 4, dLow > 0 ? 'The lower mast bends ' + Math.round(dLow) + ' mm more. That pulls luff curve out of the bottom half of the main: flatter low down, finer entry, more open slot.' : 'The lower mast is ' + Math.round(-dLow) + ' mm straighter. The bottom half of the main gets deeper and more powerful. Southern Spars warn that set too straight low down, this rig can feel stalled.']);
+    if (Math.abs(shown.cap) > 1 && Math.abs(dTip) > 4 && Math.abs(dTop) > 3 && (dTip > 0) !== (dTop > 0)) {
+      c.push([9, (dTip > 0 ? 'Uppers eased under load. Sideways, the tip falls off ' + Math.round(dTip) + ' mm further, so the head twists open earlier in the gusts. Fore and aft, the top section stands ' + Math.round(-dTop) + ' mm straighter, which on its own leaves the head deeper.'
+        : 'Uppers on under load. Sideways, the tip is held up ' + Math.round(-dTip) + ' mm, so the head keeps its power. Fore and aft, the top section bends ' + Math.round(dTop) + ' mm more, which on its own flattens the head.') + ' The two work against each other, which is why Southern Spars tie upper tension to head depth.']);
+      dTip = 0; dTop = 0;
+    }
+    if (Math.abs(dTop) > 3) c.push([Math.abs(dTop) / 5, dTop > 0 ? 'More bend up high, ' + Math.round(dTop) + ' mm at the top spreader. The head of the main flattens and the upper leech frees.' : 'Less bend up high, ' + Math.round(-dTop) + ' mm at the top spreader. The head stays deeper and the upper leech firmer.']);
+    if (Math.abs(dTip) > 4) c.push([Math.abs(dTip) / 5, dTip > 0 ? 'The tip falls off ' + Math.round(dTip) + ' mm further to leeward. The head twists open earlier and sheds load in the gusts; overdone, it costs height.' : 'The tip is held up ' + Math.round(-dTip) + ' mm. The head keeps its power for longer; there is less automatic relief in a gust.']);
+    if (Math.abs(dMid) > 6) c.push([Math.abs(dMid) / 4, dMid > 0 ? 'The middle of the mast sags ' + Math.round(dMid) + ' mm to leeward, which closes the slot and deepens the main.' : 'The middle of the mast sits ' + Math.round(-dMid) + ' mm further to windward, which opens the slot.']);
+    if (Math.abs(fr - 1) > 0.08) c.push([Math.abs(fr - 1) / 0.1, fr > 1 ? 'Forestay tension is up ' + Math.round((fr - 1) * 100) + '%: less jib luff sag, flatter jib entry, better height.' : 'Forestay tension is down ' + Math.round((1 - fr) * 100) + '%: more jib luff sag and a fuller jib entry. Useful power in light air, expensive for height in breeze.']);
+    if (cur.ten.lowerW < 5 && loads < 20) c.push([1.5, 'The lowers are slack, so at the dock they are doing nothing; under vang the bottom section would bend a long way before they came tight.']);
+    c.sort(function (a, b) { return b[0] - a[0]; });
+    c.slice(0, 3).forEach(function (x) { out.push('<p>' + x[1] + '</p>'); });
+    if (!out.length) out.push('<p>Too small a change to matter yet. Keep going.</p>');
+    return out.join('');
+  }
+
+  /* ---------- loop ---------- */
+  var last = 0;
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000 || 0.016); last = now;
+    if (introT < 2.2) { introT += dt; dirty = true; }
+    var tau = introT < 2.2 ? 0.5 : 0.17, a = reduce ? 1 : 1 - Math.exp(-dt / tau), moving = false;
+    KEYS.forEach(function (k) { var d = target[k] - shown[k]; if (Math.abs(d) > 0.004) { shown[k] += d * a; moving = true; } else shown[k] = target[k]; });
+    if (gustT >= 0) { gustT += dt; if (gustT > 3.5) gustT = -1; moving = true; }
+    if (tourOn) { tourT += dt; if (tourT > TOUR_DUR) { if (tourIdx + 1 < TOUR.length) tourStep(tourIdx + 1); else stopTour(); } }
+    var inp = modelInput(shown, gustLevel(gustT));
+    var loadsOn = (inp.wind / LOADMAX.wind + inp.leech / LOADMAX.leech + inp.vang / LOADMAX.vang) > 0.04;
+    var exWant = opts.auto ? (loadsOn ? 3 : 6) : exUser;
+    if (Math.abs(exWant - exShown) > 0.02) { exShown += (exWant - exShown) * (reduce ? 1 : 1 - Math.exp(-dt / 0.35)); moving = true; } else exShown = exWant;
+    if (opts.auto) { $('s_ex').value = Math.round(exShown); $('v_ex').textContent = '\u00d7' + Math.round(exShown); } else $('v_ex').textContent = '\u00d7' + exUser;
+    if (moving || dirty) {
+      dirty = false;
+      cur = R.solve(M, inp); ref = R.solve(M, { wind: inp.wind, leech: inp.leech, vang: inp.vang });
+      draw(inp, exShown);
+      if (now - lastDom > 90 || !moving) { updateDom(inp); lastDom = now; if (moving) dirty = true; }
+    }
+    requestAnimationFrame(frame);
+  }
+  readColors(); resize();
+  window.addEventListener('resize', resize); window.addEventListener('orientationchange', function () { setTimeout(resize, 200); });
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); var fn = function () { readColors(); }; if (mq.addEventListener) mq.addEventListener('change', fn); else if (mq.addListener) mq.addListener(fn); }
+  if (window.MutationObserver) new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
